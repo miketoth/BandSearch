@@ -1,0 +1,132 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors',1);
+
+require_once("artist.php");
+require_once("band.php");
+
+
+// echoes a list of names from bands and artists
+function display($list){
+    if(empty($list)){
+        return;
+    }
+    foreach($list as $li){
+        echo $li->getName();
+        echo "<br />";
+    }
+    echo "----------------------------------------";
+    echo "<br />";
+}
+
+// turn a list of names into an array of artist objects
+function makeArtists($list){
+    $artistList = array();
+    foreach($list as $li){
+        $a= new Artist($li);
+        $artistList[] = $a;
+    }
+    return $artistList;
+}
+
+// turn a list of names into ann array of band objects
+function makeBands($list){
+    $bandList = array();
+    foreach($list as $li){
+            $b = new Band($li);
+            $bandList[] = $b;
+    }
+    return $bandList;
+}
+
+function doCURL($wikiURL){
+    $ch = curl_init($wikiURL);
+
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+    return $result;
+
+}
+
+function getRowList($identifier, $dom){
+    $rows = $dom->getElementsByTagName('tr');
+    $artistList = array();
+
+    // getting all of the artists I need to make sure dups aren't put in.
+    foreach($rows as $row){
+        if(strstr($row->nodeValue, $identifier )){
+            $artist = substr($row->nodeValue,strlen($identifier), strlen($row->nodeValue));
+            $artistList = explode(",", $artist);
+        }
+    }
+
+    // bad fix for cases without list of associated acts (false positives) 
+    // Needs a better solution
+    if(sizeof($artistList) >1){
+        return $artistList;
+    }
+    
+    $failList = array("failed");
+    return $failList;
+}
+
+$wikiURL = "http://en.wikipedia.org/wiki/";
+$rootArtist = $_GET['artist'];
+
+if(isset($_GET['artist'])){
+    // prep for wikipedia
+    // capitalize first and last name --> LATER
+    $newWikiURL = $wikiURL . str_replace(" ", "_", $_GET['artist']);
+}
+$dom = new DOMDocument();
+
+$result = doCURL($newWikiURL);
+$dom->loadHTML($result);
+$artistList = makeArtists(getRowList("Associated acts", $dom));
+
+// now on to bands
+for($i=0;$i<sizeof($artistList);$i++){
+    $result = doCURL($wikiURL . str_replace(" ", "_", trim($artistList[$i]->getName())));
+    $dom->loadHTML($result);
+
+    // for each artist add associated bands
+    $artistList[$i]->setBands(makeBands(getRowList("Associated acts",$dom)));
+}
+
+// foreach artist foreach band that artist is in: grab all of the members 
+// MEH I'll just do that later
+
+// create JSON objects
+$rootArtistList = array('name': $rootArtist,
+                        'place': "root,
+                    );
+$jsonList[] = $rootArtistList;
+foreach($artistList as $artist){
+    foreach($artist->getBands() as $artistBand){
+        if($artistBand->getName() != "failed")
+            $artistBandList =$artistBandList . "," . $artistBand->getName();
+        }
+    $jsonList[] = array('name': $artist->getName(),
+                        'bands': $artistBandList,
+                    );
+}
+foreach($jsonList as $jsonItem){
+    echo $jsonItem[0];
+    echo "<br />";
+    echo $jsonItem[1];
+}
+
+/* display them
+foreach($artistList as $artist){
+    echo "Artist: " . $artist->getName()
+    echo "<br />";
+    foreach($artist->getBands() as $artistBand){
+        echo "     Band: " . $artistBand->getName();
+        echo "<br />";
+    }
+}
+ */
+?>
