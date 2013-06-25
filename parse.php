@@ -63,12 +63,12 @@ function getRowList($identifier, $dom){
         }
     }
 
-    // bad fix for cases without list of associated acts (false positives) 
+    // bad fix for cases without list of associated acts (false positives)
     // Needs a better solution
     if(sizeof($artistList) >1){
         return $artistList;
     }
-    
+
     $failList = array("failed");
     return $failList;
 }
@@ -96,37 +96,36 @@ for($i=0;$i<sizeof($artistList);$i++){
     $artistList[$i]->setBands(makeBands(getRowList("Associated acts",$dom)));
 }
 
-// foreach artist foreach band that artist is in: grab all of the members 
+// foreach artist foreach band that artist is in: grab all of the members
 // MEH I'll just do that later
 
 // create JSON objects
-$rootArtistList = array('name': $rootArtist,
-                        'place': "root,
+$rootArtistList = array('name' => $rootArtist,
+                        'tree' => "root",
                     );
 $jsonList[] = $rootArtistList;
+$artistBandList =""; // saving a lot of ugly error messages
 foreach($artistList as $artist){
     foreach($artist->getBands() as $artistBand){
-        if($artistBand->getName() != "failed")
-            $artistBandList =$artistBandList . "," . $artistBand->getName();
+        // band name is not 'failed' place holder or already in the string put
+        // it into the string
+        if($artistBand->getName() != "failed" && strpos($artistBandList, $artistBand->getName()) === false){
+            if(empty($artistBandList))
+                $artistBandList = trim($artistBand->getName());
+            else
+                $artistBandList = trim($artistBand->getName()) . ", ". $artistBandList;
         }
-    $jsonList[] = array('name': $artist->getName(),
-                        'bands': $artistBandList,
+    }
+    if(!empty($artistBandList)){
+    $jsonList[] = array('name'=> trim($artist->getName()),
+                        'bands' => $artistBandList,
+                        'tree' => "Branch level 1",
                     );
-}
-foreach($jsonList as $jsonItem){
-    echo $jsonItem[0];
-    echo "<br />";
-    echo $jsonItem[1];
-}
-
-/* display them
-foreach($artistList as $artist){
-    echo "Artist: " . $artist->getName()
-    echo "<br />";
-    foreach($artist->getBands() as $artistBand){
-        echo "     Band: " . $artistBand->getName();
-        echo "<br />";
+    }
+    else{
+        // do nothing
     }
 }
- */
+echo json_encode($jsonList);
+
 ?>
