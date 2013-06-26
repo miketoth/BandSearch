@@ -5,7 +5,6 @@ ini_set('display_errors',1);
 require_once("artist.php");
 require_once("band.php");
 
-
 // echoes a list of names from bands and artists
 function display($list){
     if(empty($list)){
@@ -74,12 +73,12 @@ function getRowList($identifier, $dom){
 }
 
 $wikiURL = "http://en.wikipedia.org/wiki/";
-$rootArtist = $_GET['artist'];
+$rootArtist = $_POST['artist'];
 
-if(isset($_GET['artist'])){
+if(isset($_POST['artist'])){
     // prep for wikipedia
     // capitalize first and last name --> LATER
-    $newWikiURL = $wikiURL . str_replace(" ", "_", $_GET['artist']);
+    $newWikiURL = $wikiURL . str_replace(" ", "_", $_POST['artist']);
 }
 $dom = new DOMDocument();
 
