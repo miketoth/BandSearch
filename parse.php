@@ -1,7 +1,9 @@
+
+
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors',1);
-
+header('Content-Type: application/javascript');
 require_once("artist.php");
 require_once("band.php");
 
@@ -73,12 +75,12 @@ function getRowList($identifier, $dom){
 }
 
 $wikiURL = "http://en.wikipedia.org/wiki/";
-$rootArtist = $_POST['artist'];
+$rootArtist = $_GET['artist'];
 
-if(isset($_POST['artist'])){
+if(isset($_GET['artist'])){
     // prep for wikipedia
     // capitalize first and last name --> LATER
-    $newWikiURL = $wikiURL . str_replace(" ", "_", $_POST['artist']);
+    $newWikiURL = $wikiURL . str_replace(" ", "_", $_GET['artist']);
 }
 $dom = new DOMDocument();
 
@@ -125,6 +127,6 @@ foreach($artistList as $artist){
         // do nothing
     }
 }
-echo json_encode($jsonList);
+exit(json_encode($jsonList));
 
 ?>
