@@ -8,19 +8,6 @@ header('Content-Type: application/javascript');
 require_once("artist.php");
 require_once("band.php");
 
-// echoes a list of names from bands and artists
-function display($list){
-    if(empty($list)){
-        return;
-    }
-    foreach($list as $li){
-        echo $li->getName();
-        echo "<br />";
-    }
-    echo "----------------------------------------";
-    echo "<br />";
-}
-
 // turn a list of names into an array of artist objects
 function makeArtists($list){
     $artistList = array();
