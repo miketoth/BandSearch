@@ -1,8 +1,9 @@
 
 
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+// Error messaging prevents this being sent as JSON 
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 header('Content-Type: application/javascript');
 require_once("artist.php");
 require_once("band.php");
